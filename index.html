@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Loja Virtual - QA</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .product-card {
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">Loja Virtual QA</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#produtos">Produtos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#carrinho">Carrinho</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Banner -->
+<div class="bg-primary text-white text-center py-5">
+    <h1>Loja Virtual - QA</h1>
+    <p>Projeto para testes funcionais e documentação</p>
+</div>
+
+<!-- Produtos -->
+<section class="container my-5" id="produtos">
+    <h2 class="text-center mb-4">Produtos</h2>
+    <div class="row" id="listaProdutos">
+        <!-- Produtos via JS -->
+    </div>
+</section>
+
+<!-- Carrinho -->
+<section class="container my-5" id="carrinho">
+    <h2 class="text-center mb-4">Carrinho</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Preço</th>
+                        <th>Quantidade</th>
+                        <th>Total</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="carrinhoTabela">
+                </tbody>
+            </table>
+
+            <h4 class="text-end">Total: R$ <span id="totalCarrinho">0.00</span></h4>
+
+            <div class="text-end mt-3">
+                <button class="btn btn-success" onclick="finalizarCompra()">Finalizar Compra</button>
+                <button class="btn btn-danger" onclick="limparCarrinho()">Limpar Carrinho</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal Checkout -->
+<div class="modal fade" id="modalCheckout" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Finalizar Compra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCheckout">
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="nome" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="endereco" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Forma de Pagamento</label>
+                        <select class="form-select" id="pagamento" required>
+                            <option value="">Selecione</option>
+                            <option>Cartão</option>
+                            <option>Boleto</option>
+                            <option>Pix</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Confirmar Pedido</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white text-center py-3">
+    <p class="mb-0">© 2026 - Projeto Portfólio QA - Rafael</p>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+// Lista de Produtos
+const produtos = [
+    { id: 1, nome: "Notebook", preco: 3500.00, imagem: "https://via.placeholder.com/300" },
+    { id: 2, nome: "Smartphone", preco: 2200.00, imagem: "https://via.placeholder.com/300" },
+    { id: 3, nome: "Fone Bluetooth", preco: 250.00, imagem: "https://via.placeholder.com/300" },
+    { id: 4, nome: "Mouse Gamer", preco: 180.00, imagem: "https://via.placeholder.com/300" }
+];
+
+let carrinho = [];
+
+// Carregar Produtos
+function carregarProdutos() {
+    const lista = document.getElementById("listaProdutos");
+    lista.innerHTML = "";
+
+    produtos.forEach(produto => {
+        lista.innerHTML += `
+            <div class="col-md-3 mb-4">
+                <div class="card product-card h-100">
+                    <img src="${produto.imagem}" class="card-img-top">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">${produto.nome}</h5>
+                        <p class="card-text">R$ ${produto.preco.toFixed(2)}</p>
+                        <button class="btn btn-primary" onclick="adicionarCarrinho(${produto.id})">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// Adicionar ao Carrinho
+function adicionarCarrinho(id) {
+    const produto = produtos.find(p => p.id === id);
+    const item = carrinho.find(i => i.id === id);
+
+    if (item) {
+        item.quantidade++;
+    } else {
+        carrinho.push({ ...produto, quantidade: 1 });
+    }
+
+    atualizarCarrinho();
+}
+
+// Atualizar Carrinho
+function atualizarCarrinho() {
+    const tabela = document.getElementById("carrinhoTabela");
+    const totalSpan = document.getElementById("totalCarrinho");
+
+    tabela.innerHTML = "";
+    let total = 0;
+
+    carrinho.forEach(item => {
+        const subtotal = item.preco * item.quantidade;
+        total += subtotal;
+
+        tabela.innerHTML += `
+            <tr>
+                <td>${item.nome}</td>
+                <td>R$ ${item.preco.toFixed(2)}</td>
+                <td>${item.quantidade}</td>
+                <td>R$ ${subtotal.toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-sm btn-danger" onclick="removerItem(${item.id})">X</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    totalSpan.textContent = total.toFixed(2);
+}
+
+// Remover Item
+function removerItem(id) {
+    carrinho = carrinho.filter(item => item.id !== id);
+    atualizarCarrinho();
+}
+
+// Limpar Carrinho
+function limparCarrinho() {
+    if (confirm("Deseja limpar o carrinho?")) {
+        carrinho = [];
+        atualizarCarrinho();
+    }
+}
+
+// Finalizar Compra
+function finalizarCompra() {
+    if (carrinho.length === 0) {
+        alert("Carrinho vazio!");
+        return;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById("modalCheckout"));
+    modal.show();
+}
+
+// Enviar Pedido
+const form = document.getElementById("formCheckout");
+
+form.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const nome = document.getElementById("nome").value;
+
+    alert(`Pedido realizado com sucesso!\nObrigado, ${nome}.`);
+
+    carrinho = [];
+    atualizarCarrinho();
+    form.reset();
+
+    const modal = bootstrap.Modal.getInstance(document.getElementById("modalCheckout"));
+    modal.hide();
+});
+
+// Inicializar
+carregarProdutos();
+
+</script>
+
+</body>
+</html>
